@@ -90,6 +90,6 @@ public class LockTest {
                 e.printStackTrace();
             }
         }));
-        executorService.awaitTermination(30, TimeUnit.SECONDS);
+        executorService.awaitTermination(15, TimeUnit.SECONDS);
     }
 }

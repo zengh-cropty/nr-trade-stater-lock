@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 @Documented
-public @interface JRepeat {
+public @interface NRepeat {
 
     /**
      * 超时时间 秒

@@ -1,7 +1,9 @@
 package com.fantasi.lock.aspect;
 
-import com.fantasi.lock.annotation.JRepeat;
+import com.fantasi.lock.annotation.NRepeat;
 import com.fantasi.lock.client.RedissonLockClient;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -20,6 +22,7 @@ import java.util.concurrent.TimeUnit;
  * @author zh
  */
 @Aspect
+@Slf4j
 @Component
 public class RepeatSubmitAspect extends BaseAspect {
 
@@ -29,8 +32,8 @@ public class RepeatSubmitAspect extends BaseAspect {
     /***
      * 定义controller切入点拦截规则，拦截JRepeat注解的业务方法
      */
-    @Pointcut("@annotation(jRepeat)")
-    public void pointCut(JRepeat jRepeat) {
+    @Pointcut("@annotation(nRepeat)")
+    public void pointCut(NRepeat nRepeat) {
     }
 
     /**
@@ -40,22 +43,24 @@ public class RepeatSubmitAspect extends BaseAspect {
      * @return
      * @throws Exception
      */
-    @Around("pointCut(jRepeat)")
-    public Object repeatSubmit(ProceedingJoinPoint joinPoint, JRepeat jRepeat) throws Throwable {
+    @Around("pointCut(nRepeat)")
+    public Object repeatSubmit(ProceedingJoinPoint joinPoint, NRepeat nRepeat) throws Throwable {
         String[] parameterNames = new LocalVariableTableParameterNameDiscoverer().getParameterNames(((MethodSignature) joinPoint.getSignature()).getMethod());
-        if (Objects.nonNull(jRepeat)) {
+        if (Objects.nonNull(nRepeat)) {
             Object[] args = joinPoint.getArgs();
             // 进行一些参数的处理，比如获取订单号，操作人id等
-            String key = getValueBySpEL(jRepeat.lockKey(), parameterNames, args, "RepeatSubmit:" + jRepeat.keyPrefix() + ":").get(0);
+            String keyConstant = "reSubmit:" + nRepeat.keyPrefix() + (StringUtils.isEmpty(nRepeat.keyPrefix()) ? "" : ":");
+            String key = getValueBySpEL(nRepeat.lockKey(), parameterNames, args, keyConstant).get(0);
 
             // 公平加锁，lockTime后锁自动释放
             boolean isLocked = false;
             try {
-                isLocked = redissonLockClient.fairLock(key, TimeUnit.SECONDS, jRepeat.lockTime());
+                isLocked = redissonLockClient.fairLock(key, TimeUnit.SECONDS, nRepeat.lockTime());
                 // 如果成功获取到锁就继续执行
                 if (isLocked) {
                     return joinPoint.proceed();
                 } else {
+                    log.info(((MethodSignature) joinPoint.getSignature()).getMethod().getName() + ":请勿重复提交：" + key);
                     throw new RuntimeException("请勿重复提交");
                 }
             } finally {

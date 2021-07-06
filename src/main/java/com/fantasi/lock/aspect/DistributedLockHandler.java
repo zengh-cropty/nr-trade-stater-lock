@@ -1,6 +1,6 @@
 package com.fantasi.lock.aspect;
 
-import com.fantasi.lock.annotation.JLock;
+import com.fantasi.lock.annotation.NLock;
 import com.fantasi.lock.enums.LockModel;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -39,26 +39,25 @@ public class DistributedLockHandler extends BaseAspect {
      * 切面环绕通知
      *
      * @param joinPoint
-     * @param jLock
+     * @param nLock
      * @return Object
      */
     @SneakyThrows
-    @Around("@annotation(jLock)")
-    public Object around(ProceedingJoinPoint joinPoint, JLock jLock) {
+    @Around("@annotation(nLock)")
+    public Object around(ProceedingJoinPoint joinPoint, NLock nLock) {
         Object obj = null;
-        log.debug("进入RedisLock环绕通知:{}...", jLock.lockKey());
-        RLock rLock = getLock(joinPoint, jLock);
+        log.debug("进入RedisLock环绕通知:{}...", nLock.lockKey());
+
+        RLock rLock = getLock(joinPoint, nLock);
         boolean res = false;
-        //获取超时时间
-        long expireSeconds = jLock.expireSeconds();
-        //等待多久,n秒内获取不到锁，则直接返回
-        long waitTime = jLock.waitTime();
-        //执行aop
+        long expireSeconds = nLock.expireSeconds();
+        long waitTime = nLock.waitTime();
+
         if (rLock != null) {
             try {
                 if (waitTime == -1) {
                     res = true;
-                    if (jLock.watchDogSwitch()) {
+                    if (nLock.watchDogSwitch()) {
                         // 拿锁失败时会不停的重试; 具有Watch Dog 自动延期机制 默认续30s 每隔30/3=10 秒续到30s
                         rLock.lock();
                     } else {
@@ -66,7 +65,7 @@ public class DistributedLockHandler extends BaseAspect {
                         rLock.lock(expireSeconds, TimeUnit.SECONDS);
                     }
                 } else {
-                    if (jLock.watchDogSwitch()) {
+                    if (nLock.watchDogSwitch()) {
                         // 尝试拿锁waitTime秒后停止重试,返回false; 具有Watch Dog 自动延期机制 默认续30s
                         res = rLock.tryLock(waitTime, TimeUnit.SECONDS);
                     } else {
@@ -91,23 +90,22 @@ public class DistributedLockHandler extends BaseAspect {
     }
 
     @SneakyThrows
-    private RLock getLock(ProceedingJoinPoint joinPoint, JLock jLock) {
-        String[] keys = jLock.lockKey();
+    private RLock getLock(ProceedingJoinPoint joinPoint, NLock nLock) {
+        String[] keys = nLock.lockKey();
         if (keys.length == 0) {
             throw new RuntimeException("keys不能为空");
         }
         String[] parameterNames = new LocalVariableTableParameterNameDiscoverer().getParameterNames(((MethodSignature) joinPoint.getSignature()).getMethod());
         Object[] args = joinPoint.getArgs();
 
-        LockModel lockModel = jLock.lockModel();
-        if (!lockModel.equals(LockModel.MULTIPLE) && !lockModel.equals(LockModel.RED_LOCK) && keys.length > 1) {
-            throw new RuntimeException("参数有多个,锁模式为->" + lockModel.name() + ".无法锁定");
-        }
+        LockModel lockModel = nLock.lockModel();
         RLock rLock = null;
-        String keyConstant = jLock.keyPrefix();
+        String keyConstant = nLock.keyPrefix();
+
+        // 自动模式,当参数只有一个.使用 REENTRANT 参数多个 MULTIPLE
         if (lockModel.equals(LockModel.AUTO)) {
             if (keys.length > 1) {
-                lockModel = LockModel.RED_LOCK;
+                lockModel = LockModel.MULTIPLE;
             } else {
                 lockModel = LockModel.REENTRANT;
             }
