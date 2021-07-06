@@ -46,7 +46,7 @@ public class RepeatSubmitAspect extends BaseAspect {
         if (Objects.nonNull(jRepeat)) {
             Object[] args = joinPoint.getArgs();
             // 进行一些参数的处理，比如获取订单号，操作人id等
-            String key = getValueBySpEL(jRepeat.lockKey(), parameterNames, args, "RepeatSubmit").get(0);
+            String key = getValueBySpEL(jRepeat.lockKey(), parameterNames, args, "RepeatSubmit:" + jRepeat.keyPrefix() + ":").get(0);
 
             // 公平加锁，lockTime后锁自动释放
             boolean isLocked = false;

@@ -32,22 +32,22 @@ public @interface JLock {
      *
      * @return
      */
-    String keyConstant() default "";
+    String keyPrefix() default "";
 
 
     /**
-     * 锁超时时间,默认30000毫秒
+     * 锁超时时间,默认30秒
      *
      * @return int
      */
-    long expireSeconds() default 30000L;
+    long expireSeconds() default 30L;
 
     /**
-     * 等待加锁超时时间,默认10000毫秒 -1 则表示一直等待
+     * 等待加锁超时时间,默认5秒 -1 则表示一直等待
      *
      * @return int
      */
-    long waitTime() default 10000L;
+    long waitTime() default 5L;
 
     /**
      * 未取到锁时提示信息

@@ -21,14 +21,14 @@ public class BaseAspect {
      *
      * @param key            定义的key值 以#开头 例如:#user
      * @param parameterNames 形参
-     * @param values         形参值
+     * @param parameterValues         形参值
      * @param keyConstant    key的常亮
      * @return
      */
-    public List<String> getValueBySpEL(String key, String[] parameterNames, Object[] values, String keyConstant) {
+    public List<String> getValueBySpEL(String key, String[] parameterNames, Object[] parameterValues, String keyConstant) {
         List<String> keys = new ArrayList<>();
         if (!key.contains("#")) {
-            String s = "redis:lock:" + key + keyConstant;
+            String s = "redis:lock:" + keyConstant + key;
             log.debug("lockKey:" + s);
             keys.add(s);
             return keys;
@@ -38,7 +38,7 @@ public class BaseAspect {
         //spel上下文
         EvaluationContext context = new StandardEvaluationContext();
         for (int i = 0; i < parameterNames.length; i++) {
-            context.setVariable(parameterNames[i], values[i]);
+            context.setVariable(parameterNames[i], parameterValues[i]);
         }
         Expression expression = parser.parseExpression(key);
         Object value = expression.getValue(context);
@@ -62,6 +62,6 @@ public class BaseAspect {
     }
 
     private void addKeys(List<String> keys, Object o, String keyConstant) {
-        keys.add("redis:lock:" + o.toString() + keyConstant);
+        keys.add("redis:lock:" + keyConstant + o.toString());
     }
 }

@@ -19,6 +19,13 @@ public @interface JRepeat {
      */
     int lockTime();
 
+    /**
+     * redis存放key的前缀
+     *
+     * @return
+     */
+    String keyPrefix() default "";
+
 
     /**
      * redis 锁key的

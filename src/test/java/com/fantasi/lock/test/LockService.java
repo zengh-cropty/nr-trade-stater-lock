@@ -10,7 +10,7 @@ import javax.annotation.Resource;
 @Service
 public class LockService {
 
-//    @Resource
+    @Resource
     private RedissonLockClient redissonLockClient;
 
     int n = 10;

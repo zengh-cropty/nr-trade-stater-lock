@@ -64,7 +64,13 @@ public class RedissonLockClient {
         return getLock;
     }
 
-
+    /**
+     * 获取公平锁
+     * @param lockKey
+     * @param unit
+     * @param leaseTime
+     * @return
+     */
     public boolean fairLock(String lockKey, TimeUnit unit, int leaseTime) {
         RLock fairLock = redissonClient.getFairLock(lockKey);
         try {
@@ -75,7 +81,7 @@ public class RedissonLockClient {
             }
             return fairLock.tryLock(3, leaseTime, unit);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.error("getFailLock error", e);
         }
         return false;
     }

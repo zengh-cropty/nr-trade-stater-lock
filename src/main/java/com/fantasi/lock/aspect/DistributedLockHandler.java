@@ -59,15 +59,16 @@ public class DistributedLockHandler extends BaseAspect {
             try {
                 if (waitTime == -1) {
                     res = true;
-                    //一直等待加锁
-                    rLock.lock(expireSeconds, TimeUnit.MILLISECONDS);
+                    //一直等待加锁，上锁以后expireSeconds秒自动解锁
+                    rLock.lock(expireSeconds, TimeUnit.SECONDS);
                 } else {
-                    res = rLock.tryLock(waitTime, expireSeconds, TimeUnit.MILLISECONDS);
+                    // 尝试加锁，最多等待waitTime秒，上锁以后expireSeconds秒自动解锁
+                    res = rLock.tryLock(waitTime, expireSeconds, TimeUnit.SECONDS);
                 }
                 if (res) {
                     obj = joinPoint.proceed();
                 } else {
-                    log.error("获取锁异常");
+                    log.error("获取锁失败");
                 }
             } finally {
                 if (res) {
@@ -93,7 +94,7 @@ public class DistributedLockHandler extends BaseAspect {
             throw new RuntimeException("参数有多个,锁模式为->" + lockModel.name() + ".无法锁定");
         }
         RLock rLock = null;
-        String keyConstant = jLock.keyConstant();
+        String keyConstant = jLock.keyPrefix();
         if (lockModel.equals(LockModel.AUTO)) {
             if (keys.length > 1) {
                 lockModel = LockModel.RED_LOCK;
