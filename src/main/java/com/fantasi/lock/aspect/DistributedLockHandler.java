@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -59,16 +58,27 @@ public class DistributedLockHandler extends BaseAspect {
             try {
                 if (waitTime == -1) {
                     res = true;
-                    //一直等待加锁，上锁以后expireSeconds秒自动解锁
-                    rLock.lock(expireSeconds, TimeUnit.SECONDS);
+                    if (jLock.watchDogSwitch()) {
+                        // 拿锁失败时会不停的重试; 具有Watch Dog 自动延期机制 默认续30s 每隔30/3=10 秒续到30s
+                        rLock.lock();
+                    } else {
+                        // 一直等待加锁，上锁以后expireSeconds秒自动解锁; 不具备自动续期机制
+                        rLock.lock(expireSeconds, TimeUnit.SECONDS);
+                    }
                 } else {
-                    // 尝试加锁，最多等待waitTime秒，上锁以后expireSeconds秒自动解锁
-                    res = rLock.tryLock(waitTime, expireSeconds, TimeUnit.SECONDS);
+                    if (jLock.watchDogSwitch()) {
+                        // 尝试拿锁waitTime秒后停止重试,返回false; 具有Watch Dog 自动延期机制 默认续30s
+                        res = rLock.tryLock(waitTime, TimeUnit.SECONDS);
+                    } else {
+                        // 尝试拿锁waitTime秒后停止重试,返回false，上锁以后expireSeconds秒自动解锁; 不具备自动续期机制
+                        res = rLock.tryLock(waitTime, expireSeconds, TimeUnit.SECONDS);
+                    }
                 }
                 if (res) {
                     obj = joinPoint.proceed();
                 } else {
                     log.error("获取锁失败");
+                    throw new RuntimeException("系统错误，请重试");
                 }
             } finally {
                 if (res) {
