@@ -1,0 +1,21 @@
+spring:
+  redis:
+    database: 12
+    host: 192.168.2.230
+    lettuce:
+      pool:
+        max-active: 8   #最大连接数据库连接数,设 0 为没有限制
+        max-idle: 8     #最大等待连接中的数量,设 0 为没有限制
+        max-wait: -1ms  #最大建立连接等待时间。如果超过此时间将接到异常。设为-1表示无限制。
+        min-idle: 0     #最小等待连接中的数量,设 0 为没有限制
+      shutdown-timeout: 100ms
+    password: xdnphb_2016
+    port: 6407
+
+trade:
+  redisson:
+    address: 192.168.2.230:6407   #多个用逗号(,)分隔
+    password: xdnphb_2016
+    type: STANDALONE      #部署方式 见RedisConnectionType
+    database: 12
+    enabled: true         # 是否装配redisson配置

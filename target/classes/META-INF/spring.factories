@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.fantasi.lock.config.RedissonConfiguration
+
+
