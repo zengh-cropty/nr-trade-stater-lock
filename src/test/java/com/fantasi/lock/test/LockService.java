@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Random;
 
 @Service
 @Slf4j
@@ -21,12 +22,14 @@ public class LockService {
      * 模拟秒杀(注解方式)
      */
     @NLock(lockKey = "#productId", expireSeconds = 10)
-    public void seckill(String productId) {
+    public void seckill(String productId) throws InterruptedException {
         if (n <= 0) {
             log.info("注解方式--活动已结束,请下次再来");
             return;
         }
-        log.info("注解方式--"+Thread.currentThread().getName() + ":秒杀到了商品， 当前剩余：" + --n);
+        Thread.sleep(100);
+        n = n - 1;
+        log.info("注解方式--"+Thread.currentThread().getName() + ":秒杀到了商品， 当前剩余：" + n);
     }
 
     /**

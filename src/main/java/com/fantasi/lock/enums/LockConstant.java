@@ -1,4 +1,4 @@
-package com.fantasi.lock.annotation;
+package com.fantasi.lock.enums;
 
 import lombok.Getter;
 

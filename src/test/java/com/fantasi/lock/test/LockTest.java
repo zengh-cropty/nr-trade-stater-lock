@@ -50,8 +50,8 @@ public class LockTest {
      */
     @Test
     public void test1() throws Exception {
-        ExecutorService executorService = Executors.newFixedThreadPool(6);
-        IntStream.range(0, 60).forEach(i -> executorService.submit(() -> {
+        ExecutorService executorService = Executors.newFixedThreadPool(30);
+        IntStream.range(0, 1000).forEach(i -> executorService.submit(() -> {
             try {
                 lockService.seckill("20120508784");
             } catch (Exception e) {

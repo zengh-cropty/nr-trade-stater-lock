@@ -28,7 +28,7 @@ public @interface NLock {
     String[] lockKey() default {};
 
     /**
-     * key的静态常量:当key的spel的值是LIST,数组时使用+号连接将会被spel认为这个变量是个字符串
+     * key的静态常量
      *
      * @return
      */
