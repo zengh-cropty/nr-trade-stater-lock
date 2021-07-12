@@ -66,7 +66,7 @@ public class DistributedLockHandler extends BaseAspect {
                     }
                 } else {
                     if (nLock.watchDogSwitch()) {
-                        // 尝试拿锁waitTime秒后停止重试,返回false; 具有Watch Dog 自动延期机制 默认续30s
+                        // 尝试拿锁waitTime秒后停止重试,返回false; 具有Watch Dog 自动延期机制 默认续到30s
                         res = rLock.tryLock(waitTime, TimeUnit.SECONDS);
                     } else {
                         // 尝试拿锁waitTime秒后停止重试,返回false，上锁以后expireSeconds秒自动解锁; 不具备自动续期机制
